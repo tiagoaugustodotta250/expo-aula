@@ -1,35 +1,92 @@
-import { Image } from 'expo-image';
-import { StyleSheet, View } from 'react-native';
+import { useState } from 'react';
+import { Button, StyleSheet, Text, TextInput, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-const blurhash =
-  '|rF?hV%2WCj[ayj[a|j[az_NaeWBj@ayfRayfQfQM{M|azj[azf6fQfQfQIpWXofj[ayj[j[fQayWCoeoeaya}j[ayfQa{oLj?j[WVj[ayayj[fQoff7azayj[ayj[j[ayofayayayj[fQj[ayayj[ayfjj[j[ayjuayj[';
+import { supabase } from '../../src/supabaseClient';
 
-export default function App() {
-  return (
-    <View style={styles.container}>
-      <Image
-        style={styles.image}
-        source={require('@/app/images/cba.jpg')}
-        placeholder={{ blurhash }}
-        contentFit="cover"
-        transition={1000}
-      />
-    </View>
-  );
+export default function App(){
+
+    const [nome, setNome] = useState('');
+    const [idade, setIdade] = useState('');
+    const [msg,setMsg] =useState('');
+    
+    const dados = {
+        nome: nome,
+        idade: idade,
+        msg: msg
+    }
+
+    const enviarDados = async () => {
+        const {data, error} = await supabase
+            .from('contato')
+            .insert([{ nome: nome.trim(), idade: idade.trim(), msg: msg.trim() }]);
+    }
+
+    return(
+        <SafeAreaView style={style.SafeArea}>
+            <Text style={style.Text}>Fale Conosco</Text>
+            <TextInput
+                style={style.TextInput}
+                placeholder='Digite seu nome'
+                value={nome}
+                onChangeText={setNome}
+            />
+            <Button title = 'Gravar'/>
+            
+            <TextInput
+                style={style.TextInput}
+                placeholder='Digite sua idade'
+                value={idade}
+                onChangeText={setIdade}
+            />
+            <Button title = 'Gravar'/>
+            
+            <TextInput
+                style={style.TextInput}
+                placeholder='Digite a mensagem aqui'
+                value={msg}
+                onChangeText={setMsg}
+            />
+            <Button title = 'Gravar'/>
+
+            <TouchableOpacity style={style.Touchable} onPress={enviarDados}>
+                Cadastrar
+            </TouchableOpacity>
+        </SafeAreaView>
+    );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  image: {
-    flex: 1,
-    width: '100%',
-    backgroundColor: '#0553',
-  },
-});
+const style = StyleSheet.create({
+    
+    SafeArea:{
+        display: 'flex',
+        lineHeight: 40
+    },
 
+    TextInput:{
+        width: '90%',
+        height: 45,
+        backgroundColor:'#fff',
+        color: '#000',
+        padding: 5,
+        marginBottom: 10,
+        textAlign: 'center'
+    },
+    
+    Text:{
+        height: 50,
+        textAlign: 'center',
+        textAlignVertical: 'center',
+        color: '#fff',
+        marginVertical: 10
+    },
 
+    Touchable:{
+        backgroundColor: '#aaa',
+        borderRadius: 10,
+        width: '80%',
+        textAlign: 'center',
+        margin: 'auto',
+        marginVertical: 25
+    }
+})
