@@ -1,72 +1,70 @@
+//Tela de consultar simplificada
+import { useState, useCallback } from "react";
+import { SafeAreaView, FlatList, View, Text, StyleSheet } from "react-native";
+
 import { useFocusEffect } from "@react-navigation/native";
-import { useCallback, useState } from "react";
-import { ActivityIndicator, FlatList, SafeAreaView, StyleSheet, Text, View } from "react-native";
 import { supabase } from "../../src/supabaseClient";
 
-export default function ConsultaPessoas() {
-  const [pessoas, setPessoas] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+export default function ConsultaContatos() {
 
-  const carregarPessoas = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from("contato")
-      .select("*")
-      .order("id", { ascending: false });
+    // Criação do tipo Contato para que os atributos fiquem tipados, evitando erros com objetos não tipados
+    type Contato = {
+        id: number;
+        nome: string;
+        telefone: string;
+        email: string;
+        msg: string;
+    };
 
-    if (error) console.error("Erro ao buscar dados:", error.message);
-    else setPessoas(data || []);
+    const [contatos, setContatos] = useState<Contato[]>([]);// Estado que armazena a lista de contatos, usando o tipo Contato
+    const [carregar, setCarregar] = useState(true);
 
-    setLoading(false);
-  };
+    const carregarContatos = async () => {
+        setCarregar(true);
+        const { data, error } = await supabase
+            .from("contatoagro23")
+            .select("*")
+            .order("id", { ascending: false });
 
-  useFocusEffect(
-    useCallback(() => {
-      carregarPessoas();
-    }, [])
-  );
+        if (error) {
+            console.error("Erro ao buscar dados:", error.message);
+        } else {
+            setContatos(data || []);
+        }
 
-  const renderItem = ({ item }) => (
-    <View style={styles.card}>
-      <Text style={styles.nome}>{item.nome}</Text>
-      <Text style={styles.nome}>{item.msg}</Text>
-      <Text style={styles.nome}>{item.idade}</Text>
-    </View>
-  );
+        setCarregar(false);
 
-  return (
-    <SafeAreaView style={styles.container}>
-      {loading ? (
-        <ActivityIndicator size="large" color="#007AFF" />
-      ) : pessoas.length === 0 ? (
-        <Text style={styles.semDados}>Nenhuma pessoa cadastrada.</Text>
-      ) : (
-        <FlatList
-          data={pessoas}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={renderItem}
-          contentContainerStyle={styles.lista}
-        />
-      )}
-    </SafeAreaView>
-  );
+    };
+
+    // Executa a função carregarContatos sempre que a tela recebe foco (útil para atualizar a lista ao voltar para a tela)
+    useFocusEffect(useCallback(() => { carregarContatos(); }, []));
+
+    const gerarItem = ({ item }: { item: Contato }) => (
+        <View>
+            <Text>{item.nome}</Text>
+            <Text>{item.telefone}</Text>
+            <Text>{item.email}</Text>
+            <Text>{item.msg}</Text>
+        </View>
+    );
+
+    return (
+        <SafeAreaView>
+            {carregar ? (
+                <Text>Carregando...</Text>
+            ) : contatos.length === 0 ? (
+                <Text>Nenhuma pessoa cadastrada.</Text>
+            ) : (
+                <FlatList
+                    data={contatos}
+                    keyExtractor={(item) => item.id.toString()}
+                    renderItem={gerarItem}
+                />
+            )}
+        </SafeAreaView>
+    );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F4F6F8" },
-  lista: { padding: 16 },
-  card: {
-    backgroundColor: "#fff",
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  nome: { fontSize: 18, fontWeight: "bold", marginBottom: 6 },
-  telefone: { fontSize: 16, color: "#666" },
-  semDados: { textAlign: "center", marginTop: 50, fontSize: 16, color: "#666" },
+
 });
